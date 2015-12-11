@@ -2,5 +2,8 @@
     <string name="app_name">Popular Movies</string>
 
     <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="api_key">YOUR_API_KEY_HERE</string>
+    <string name="action_sort_popularity">Sort by popularity</string>
+    <string name="action_sort_rating">Sort by Rating</string>
+    <string name="title_activity_description">Description</string>
 </resources>
