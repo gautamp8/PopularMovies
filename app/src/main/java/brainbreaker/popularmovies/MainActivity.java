@@ -1,6 +1,9 @@
 package brainbreaker.popularmovies;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Parcel;
@@ -287,10 +290,17 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         protected void onPostExecute(final result myresult) {
-
-            adapter = new CustomGrid(MainActivity.this,myresult.getTitle(),myresult.getPoster());
-            moviegrid.setAdapter(adapter);
-            moviegrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            try {
+                adapter = new CustomGrid(MainActivity.this,myresult.getTitle(),myresult.getPoster());
+                moviegrid.setAdapter(adapter);
+            }
+            catch (NullPointerException e){
+                boolean connect = isOnline(MainActivity.this);
+                if (!connect){
+                    Toast.makeText(MainActivity.this,"Unable to connect to Internet. Please check your connection.",Toast.LENGTH_SHORT).show();
+                }
+            }
+                moviegrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view,
@@ -313,6 +323,17 @@ public class MainActivity extends ActionBarActivity {
             });
             }
         }
+        public boolean isOnline(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+
+        return isConnected;
+    }
+
     }
 
 
