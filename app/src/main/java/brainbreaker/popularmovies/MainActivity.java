@@ -279,12 +279,6 @@ public class MainActivity extends ActionBarActivity {
 
             }
 
-            for (String s : resultnameStrs) {
-//                Log.v(LOG_TAG, "Movie Titles: " + s);
-            }
-            for (String s : resultposter2Strs) {
-//                Log.v(LOG_TAG, "Movie Posters2: " + s);
-            }
             return new result(resultnameStrs, resultposterStrs, resultposter2Strs, resultdesStrs, resultratingStrs, resultreleaseStrs);
         }
 
