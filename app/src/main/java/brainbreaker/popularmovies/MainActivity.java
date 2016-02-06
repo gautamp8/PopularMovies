@@ -6,11 +6,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Parcel;
-import android.support.annotation.NonNull;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.text.format.Time;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,19 +26,21 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
+
+import brainbreaker.popularmovies.Adapters.CustomGrid;
+import brainbreaker.popularmovies.Models.MovieClass;
 
 
 public class MainActivity extends ActionBarActivity {
     GridView moviegrid;
     CustomGrid adapter;
-
+    String apikey;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         moviegrid=(GridView)findViewById(R.id.moviegrid);
-
+        apikey= getResources().getString(R.string.api_key);
     }
 
     @Override
@@ -79,50 +78,12 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    final class result {
 
-        private String[] title= {""};
-        private String[] poster= {""};
-        private String[] poster2= {""};
-        private String[] description = {""};
-        private String[] rating = {""};
-        private String[] release = {""};
-
-        public result(String[] title, String[] poster, String[] poster2, String[] description, String[] rating, String[] release){
-            this.title = title;
-            this.poster = poster;
-            this.poster2 = poster2;
-            this.description = description;
-            this.rating = rating;
-            this.release = release;
-        }
-
-        public String[] getTitle(){
-            return title;
-        }
-        public String[] getPoster(){
-            return poster;
-        }
-        public String[] getPoster2(){
-            return poster2;
-        }
-        public String[] getDescription(){
-            return description;
-        }
-        public String[] getRating(){
-            return rating;
-        }
-        public String[] getRelease(){
-            return release;
-        }
-
-    }
-
-    public class FetchMovieList extends AsyncTask<String, Void, result>{
+    public class FetchMovieList extends AsyncTask<String, Void, MovieClass>{
 
         private final String LOG_TAG = FetchMovieList.class.getSimpleName();
         @Override
-        protected result doInBackground(String... sort) {
+        protected MovieClass doInBackground(String... sort) {
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
             HttpURLConnection urlConnection = null;
@@ -131,7 +92,6 @@ public class MainActivity extends ActionBarActivity {
             // Will contain the raw JSON response as a string.
             String forecastJsonStr = null;
             String sort_by = sort[0];
-            String apikey= getResources().getString(R.string.api_key);
             Uri builtUri;
 
 
@@ -161,9 +121,8 @@ public class MainActivity extends ActionBarActivity {
                 }
                 // Construct the URL to fetch the movie list
                 URL url = new URL(builtUri.toString());
-//                Log.e("THE URL", url.toString());
-
-                // Create the request to Moviedb API, and open the connection
+                System.out.println("URL IS- "+ url);
+                // CREATE A REQUEST TO TMDB DATABASE AND OPEN THE CONNECTION
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
@@ -190,7 +149,7 @@ public class MainActivity extends ActionBarActivity {
                     return null;
                 }
                 forecastJsonStr = buffer.toString();
-//                Log.e("excuse", forecastJsonStr);
+
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attemping
@@ -210,8 +169,8 @@ public class MainActivity extends ActionBarActivity {
             }
 
             try {
-                result myresult = getMovieDataFromJson(forecastJsonStr);
-                return myresult;
+                MovieClass myMovieClass = getMovieDataFromJson(forecastJsonStr);
+                return myMovieClass;
             } catch (Exception e){
                 Log.e(LOG_TAG,e.getMessage(),e);
                 e.printStackTrace();
@@ -219,7 +178,7 @@ public class MainActivity extends ActionBarActivity {
             }
         }
 
-        private result getMovieDataFromJson(String moviesJsonStr)
+        private MovieClass getMovieDataFromJson(String moviesJsonStr)
                 throws JSONException {
 
             // These are the names of the JSON objects that need to be extracted.
@@ -230,6 +189,7 @@ public class MainActivity extends ActionBarActivity {
             final String TMDB_rating = "vote_average";
             final String TMDB_release = "release_date";
             final String TMDB_poster2 = "backdrop_path";
+            final String TMDB_Movie_id = "id";
 
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray resultArray = moviesJson.getJSONArray(TMDB_results);
@@ -240,6 +200,7 @@ public class MainActivity extends ActionBarActivity {
             String[] resultratingStrs = new String[resultArray.length()];
             String[] resultreleaseStrs = new String[resultArray.length()];
             String[] resultposter2Strs = new String[resultArray.length()];
+            String[] resultmovieIDStrs = new String[resultArray.length()];
             for (int i = 0; i < resultArray.length(); i++) {
 
                 String moviename;
@@ -248,6 +209,7 @@ public class MainActivity extends ActionBarActivity {
                 String description;
                 String rating;
                 String release;
+                String movie_id;
 
                 // Get the JSON object in which movie title is there
                 JSONObject movietitle = resultArray.getJSONObject(i);
@@ -257,6 +219,7 @@ public class MainActivity extends ActionBarActivity {
                 description = movietitle.get(TMDB_description).toString();
                 rating = movietitle.get(TMDB_rating).toString();
                 release = movietitle.get(TMDB_release).toString();
+                movie_id = movietitle.get(TMDB_Movie_id).toString();
 
 
                 //Poster URL Builder
@@ -266,9 +229,9 @@ public class MainActivity extends ActionBarActivity {
                 Uri poster2builtUri = Uri.parse("http://image.tmdb.org/t/p/w500/").buildUpon()
                         .appendPath(movieposter2.replace("/","")).build();
 
+
                 String PosterUrl = posterbuiltUri.toString();
                 String PosterUrl2 = poster2builtUri.toString();
-
 
                 resultposterStrs[i] = PosterUrl;
                 resultposter2Strs[i] = PosterUrl2;
@@ -276,14 +239,14 @@ public class MainActivity extends ActionBarActivity {
                 resultdesStrs[i] = description;
                 resultratingStrs[i] = rating;
                 resultreleaseStrs[i] = release;
-
+                resultmovieIDStrs[i] = movie_id;
             }
 
-            return new result(resultnameStrs, resultposterStrs, resultposter2Strs, resultdesStrs, resultratingStrs, resultreleaseStrs);
+            return new MovieClass(resultnameStrs, resultposterStrs, resultposter2Strs, resultdesStrs, resultratingStrs, resultreleaseStrs, resultmovieIDStrs);
         }
 
         @Override
-        protected void onPostExecute(final result myresult) {
+        protected void onPostExecute(final MovieClass myresult) {
             try {
                 adapter = new CustomGrid(MainActivity.this,myresult.getTitle(),myresult.getPoster());
                 moviegrid.setAdapter(adapter);
@@ -304,14 +267,15 @@ public class MainActivity extends ActionBarActivity {
                     String ratingarray[] = myresult.getRating();
                     String releasearray[] = myresult.getRelease();
                     String poster2array[] = myresult.getPoster2();
-
+                    String MovieIDArray[] = myresult.getid();
                     // Passing all the required data through this activity to Description(Movie Details) Activity
-                    Intent  intent = new Intent(MainActivity.this, Description.class);
+                    Intent  intent = new Intent(MainActivity.this, DescriptionActivity.class);
                     intent.putExtra("MovieTitle", titlearray[position]);
                     intent.putExtra("MovieDescription", desarray[position]);
                     intent.putExtra("MovieRating", ratingarray[position]);
                     intent.putExtra("MovieRelease", releasearray[position]);
                     intent.putExtra("PosterURL",poster2array[position]);
+                    intent.putExtra("MovieID",MovieIDArray[position]);
                     MainActivity.this.startActivity(intent);
                 }
             });
