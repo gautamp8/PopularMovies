@@ -26,4 +26,6 @@ dependencies {
     compile 'com.android.support:cardview-v7:+'
     compile 'com.android.support:recyclerview-v7:+'
     compile 'com.squareup.picasso:picasso:2.5.2'
+    //GSON
+    compile 'com.google.code.gson:gson:2.4'
 }

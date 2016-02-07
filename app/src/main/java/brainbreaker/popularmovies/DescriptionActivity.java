@@ -2,9 +2,12 @@ package brainbreaker.popularmovies;
 
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -19,6 +22,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -29,9 +34,16 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
+import java.util.ArrayList;
+
+import brainbreaker.popularmovies.Models.FavouriteMovies;
+import brainbreaker.popularmovies.Models.MovieClass;
+import brainbreaker.popularmovies.Models.ReviewClass;
 
 
 public class DescriptionActivity extends ActionBarActivity {
@@ -40,42 +52,41 @@ public class DescriptionActivity extends ActionBarActivity {
     ImageView PlayButton;
     ListView ReviewList;
     ProgressDialog progress;
+    public static ArrayList<FavouriteMovies> FavouriteList = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_description);
 
         Intent intent = getIntent();
-        String movietitle = intent.getStringExtra("MovieTitle");
-        String moviedescription = intent.getStringExtra("MovieDescription");
-        String movierating = intent.getStringExtra("MovieRating");
-        String movierelease = intent.getStringExtra("MovieRelease");
+        final String movietitle = intent.getStringExtra("MovieTitle");
+        final String PosterURL = intent.getStringExtra("PosterURL");
+        final String moviedescription = intent.getStringExtra("MovieDescription");
+        final String movierating = intent.getStringExtra("MovieRating");
+        final String movierelease = intent.getStringExtra("MovieRelease");
         MovieID = intent.getStringExtra("MovieID");
 
         /** CHANGING THE TITLE OF ACTION BAR AND ENABLING THE BACK BUTTON**/
         getSupportActionBar().setTitle(movietitle);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        TextView description = (TextView) findViewById(R.id.description);
+        final TextView description = (TextView) findViewById(R.id.description);
         description.setText(moviedescription);
 
-        TextView rating = (TextView) findViewById(R.id.rating);
+        final TextView rating = (TextView) findViewById(R.id.rating);
         rating.setText("Rating: "+movierating + "/10.0");
 
-        TextView release = (TextView) findViewById(R.id.release);
+        final TextView release = (TextView) findViewById(R.id.release);
         release.setText("Release Date: "+movierelease);
 
         PlayButton = (ImageView) findViewById(R.id.VideoPreviewPlayButton);
         PlayButton.setVisibility(View.GONE);
 
         final ImageButton fav = (ImageButton) findViewById(R.id.Favourite);
-        fav.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                fav.setBackgroundResource(android.R.drawable.star_big_on);
-                Toast.makeText(DescriptionActivity.this,"Movie Added as favourite",Toast.LENGTH_LONG).show();
-            }
-        });
+        //If the movie is added to favourite show the highlighted star.
+        if(intent.getBooleanExtra("favStatus",false)){
+            fav.setBackgroundResource(android.R.drawable.star_big_on);
+        }
 
         ReviewList = (ListView) findViewById(R.id.ReviewlistView);
         VideoImageView = (ImageView) findViewById(R.id.poster);
@@ -92,6 +103,23 @@ public class DescriptionActivity extends ActionBarActivity {
 
         FetchReviews fetchReviews = new FetchReviews(this,ReviewList);
         fetchReviews.execute(MovieID);
+
+        fav.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fav.setBackgroundResource(android.R.drawable.star_big_on);
+                Toast.makeText(DescriptionActivity.this,"Movie Added as favourite",Toast.LENGTH_LONG).show();
+                ArrayList<ReviewClass> reviewlist = new ArrayList<ReviewClass>();
+                int len = ReviewList.getCount();
+                for (int i = 0; i < len; i++) {
+                    ReviewClass currentReview = (ReviewClass) ReviewList.getAdapter().getItem(i);
+                    reviewlist.add(currentReview);
+                }
+                MovieClass movieObject = new MovieClass(movietitle, PosterURL, moviedescription, movierating, movierelease,MovieID,true);
+                FavouriteList.add(new FavouriteMovies(movieObject, reviewlist));
+                SaveFavList(DescriptionActivity.this,FavouriteList);
+            }
+        });
 
     }
 
@@ -234,5 +262,29 @@ public class DescriptionActivity extends ActionBarActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public static void SaveFavList(Context context, ArrayList<FavouriteMovies> FavList) {
+        SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor prefsEditor = mPrefs.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(FavList);
+        prefsEditor.putString("FavMovieList", json);
+        prefsEditor.apply();
+    }
+
+    public static ArrayList<FavouriteMovies> RetrieveFavList(Context context) {
+        ArrayList<FavouriteMovies> FavList;
+        SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        Gson gson = new Gson();
+        String json = mPrefs.getString("FavMovieList", "");
+        if (json.isEmpty()) {
+            FavList = new ArrayList<FavouriteMovies>();
+        } else {
+            Type type = new TypeToken<ArrayList<FavouriteMovies>>() {
+            }.getType();
+            FavList = gson.fromJson(json, type);
+        }
+        return FavList;
     }
 }

@@ -5,51 +5,50 @@ import java.util.ArrayList;
 /**
  * Created by brainbreaker on 30/1/16.
  */
-final class MovieClass {
+public class MovieClass {
 
-    private String[] title= {""};
-    private String[] poster= {""};
-    private String[] poster2= {""};
-    private String[] description = {""};
-    private String[] rating = {""};
-    private String[] release = {""};
-    private String[] id = {""};
-
-    public MovieClass(String[] title,
-                      String[] poster,
-                      String[] poster2,
-                      String[] description,
-                      String[] rating,
-                      String[] release,
-                      String[] id){
+    private String title ;
+    private String poster;
+    private String description;
+    private String rating;
+    private String release;
+    private String id;
+    private boolean favStatus;    // A status so as to check whether the movie object is in favourite list or not
+    public MovieClass(String title,
+                      String poster,
+                      String description,
+                      String rating,
+                      String release,
+                      String id,
+                      boolean favStatus){
         this.title = title;
         this.poster = poster;
-        this.poster2 = poster2;
         this.description = description;
         this.rating = rating;
         this.release = release;
         this.id = id;
+        this.favStatus = favStatus;
     }
 
-    public String[] getTitle(){
+    public String getTitle(){
         return title;
     }
-    public String[] getPoster(){
+    public String getPoster(){
         return poster;
     }
-    public String[] getPoster2(){
-        return poster2;
-    }
-    public String[] getDescription(){
+    public String getDescription(){
         return description;
     }
-    public String[] getRating(){
+    public String getRating(){
         return rating;
     }
-    public String[] getRelease(){
+    public String getRelease(){
         return release;
     }
-    public String[] getid(){
+    public String getid(){
         return id;
+    }
+    public boolean getFavstatus(){
+        return favStatus;
     }
 }

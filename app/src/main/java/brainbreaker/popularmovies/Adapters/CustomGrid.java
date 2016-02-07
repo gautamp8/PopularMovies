@@ -10,6 +10,9 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
+
+import brainbreaker.popularmovies.Models.MovieClass;
 import brainbreaker.popularmovies.Models.ReviewClass;
 import brainbreaker.popularmovies.R;
 
@@ -19,19 +22,16 @@ import brainbreaker.popularmovies.R;
 public class CustomGrid extends BaseAdapter {
 
     private Context mContext;
-    private final String[] moviename;
-    private final String[] movieimageurl;
-
-    public CustomGrid(Context c, String[] moviename, String[] movieimageurl) {
+    private ArrayList<MovieClass> movielist;
+    public CustomGrid(Context c, ArrayList<MovieClass> movielist) {
         mContext = c;
-        this.movieimageurl = movieimageurl;
-        this.moviename = moviename;
+        this.movielist = movielist;
     }
 
     @Override
     public int getCount() {
         // TODO Auto-generated method stub
-        return moviename.length;
+        return movielist.size();
     }
 
     @Override
@@ -52,16 +52,18 @@ public class CustomGrid extends BaseAdapter {
         View grid;
         LayoutInflater inflater = (LayoutInflater) mContext
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
+        convertView=null;
         if (convertView == null) {
 
             grid = inflater.inflate(R.layout.grid_item_layout, null);
             TextView textView = (TextView) grid.findViewById(R.id.grid_text);
             ImageView imageView = (ImageView) grid.findViewById(R.id.grid_image);
-            textView.setText(moviename[position]);
+
+            MovieClass CurrentMovie = movielist.get(position);
+            textView.setText(CurrentMovie.getTitle());
             if (imageView != null) {
                 Picasso.with(mContext)
-                        .load(movieimageurl[position])
+                        .load(CurrentMovie.getPoster())
                         .placeholder(R.mipmap.ic_launcher)
                         .into(imageView);
             }

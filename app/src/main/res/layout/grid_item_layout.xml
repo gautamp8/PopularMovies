@@ -7,8 +7,8 @@
         android:layout_height="wrap_content"
         android:background="#FFF"
         card_view:cardBackgroundColor="#FFF"
-        card_view:cardElevation="10dp"
-        card_view:cardCornerRadius="5dp"
+        card_view:cardElevation="5dp"
+        card_view:cardCornerRadius="1dp"
         android:focusable="false"
         >
     <LinearLayout

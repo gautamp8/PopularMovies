@@ -1,11 +1,15 @@
 package brainbreaker.popularmovies;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +20,9 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,10 +31,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 
 import brainbreaker.popularmovies.Adapters.CustomGrid;
+import brainbreaker.popularmovies.Models.FavouriteMovies;
 import brainbreaker.popularmovies.Models.MovieClass;
 
 
@@ -35,6 +45,7 @@ public class MainActivity extends ActionBarActivity {
     GridView moviegrid;
     CustomGrid adapter;
     String apikey;
+    ProgressDialog progress;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,8 +57,31 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        // SHOW A PROGRESS DIALOG
+        progress = new ProgressDialog(this);
+        progress.setTitle("Loading Movies...");
+        progress.setCancelable(false);
+        progress.show();
         FetchMovieList fetchpopularMovieList = new FetchMovieList();
         fetchpopularMovieList.execute("popularity");
+    }
+
+    boolean doubleBackToExitPressedOnce = false;
+    @Override
+    public void onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        }
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                doubleBackToExitPressedOnce=false;
+            }
+        }, 2000);
     }
 
     @Override
@@ -73,17 +107,35 @@ public class MainActivity extends ActionBarActivity {
                 FetchMovieList fetchratedMovieList = new FetchMovieList();
                 fetchratedMovieList.execute("rating");
                 return true;
+            case R.id.action_fav:
+                Toast.makeText(MainActivity.this, "Your favourites", Toast.LENGTH_SHORT).show();
+
+                ArrayList<FavouriteMovies> FavMovieList = DescriptionActivity.RetrieveFavList(this);
+                if (FavMovieList!=null) {
+                    ArrayList<MovieClass> movieList = new ArrayList<>();
+                    for (int i = 0; i < FavMovieList.size(); i++) {
+                        movieList.add(FavMovieList.get(i).getMovie());
+                    }
+                    CustomGrid adapter = new CustomGrid(this, movieList);
+                    moviegrid.setAdapter(adapter);
+                }
+                else {
+                    Toast.makeText(MainActivity.this, "You don't have any favourites yet", Toast.LENGTH_SHORT).show();
+                    FetchMovieList fetchMovieList = new FetchMovieList();
+                    fetchMovieList.execute("popularity");
+                }
+                return true;
 
         }
         return super.onOptionsItemSelected(item);
     }
 
 
-    public class FetchMovieList extends AsyncTask<String, Void, MovieClass>{
+    public class FetchMovieList extends AsyncTask<String, Void, ArrayList<MovieClass>>{
 
         private final String LOG_TAG = FetchMovieList.class.getSimpleName();
         @Override
-        protected MovieClass doInBackground(String... sort) {
+        protected ArrayList<MovieClass> doInBackground(String... sort) {
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
             HttpURLConnection urlConnection = null;
@@ -169,8 +221,8 @@ public class MainActivity extends ActionBarActivity {
             }
 
             try {
-                MovieClass myMovieClass = getMovieDataFromJson(forecastJsonStr);
-                return myMovieClass;
+                ArrayList<MovieClass> myMovieClassList = getMovieDataFromJson(forecastJsonStr);
+                return myMovieClassList;
             } catch (Exception e){
                 Log.e(LOG_TAG,e.getMessage(),e);
                 e.printStackTrace();
@@ -178,7 +230,7 @@ public class MainActivity extends ActionBarActivity {
             }
         }
 
-        private MovieClass getMovieDataFromJson(String moviesJsonStr)
+        private ArrayList<MovieClass> getMovieDataFromJson(String moviesJsonStr)
                 throws JSONException {
 
             // These are the names of the JSON objects that need to be extracted.
@@ -188,24 +240,16 @@ public class MainActivity extends ActionBarActivity {
             final String TMDB_description = "overview";
             final String TMDB_rating = "vote_average";
             final String TMDB_release = "release_date";
-            final String TMDB_poster2 = "backdrop_path";
             final String TMDB_Movie_id = "id";
 
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray resultArray = moviesJson.getJSONArray(TMDB_results);
 
-            String[] resultnameStrs = new String[resultArray.length()];
-            String[] resultposterStrs = new String[resultArray.length()];
-            String[] resultdesStrs = new String[resultArray.length()];
-            String[] resultratingStrs = new String[resultArray.length()];
-            String[] resultreleaseStrs = new String[resultArray.length()];
-            String[] resultposter2Strs = new String[resultArray.length()];
-            String[] resultmovieIDStrs = new String[resultArray.length()];
+            ArrayList<MovieClass> movieList = new ArrayList<>();
             for (int i = 0; i < resultArray.length(); i++) {
 
                 String moviename;
                 String movieposter;
-                String movieposter2;
                 String description;
                 String rating;
                 String release;
@@ -215,7 +259,6 @@ public class MainActivity extends ActionBarActivity {
                 JSONObject movietitle = resultArray.getJSONObject(i);
                 moviename = movietitle.get(TMDB_title).toString();
                 movieposter = movietitle.get(TMDB_poster).toString();
-                movieposter2 = movietitle.get(TMDB_poster2).toString();
                 description = movietitle.get(TMDB_description).toString();
                 rating = movietitle.get(TMDB_rating).toString();
                 release = movietitle.get(TMDB_release).toString();
@@ -225,36 +268,38 @@ public class MainActivity extends ActionBarActivity {
                 //Poster URL Builder
                 Uri posterbuiltUri = Uri.parse("http://image.tmdb.org/t/p/w150/").buildUpon()
                         .appendPath(movieposter.replace("/","")).build();
-                //Poster 2 URL Builder having backdrop path in URL, image view to be populated in Movie Details Activity
-                Uri poster2builtUri = Uri.parse("http://image.tmdb.org/t/p/w500/").buildUpon()
-                        .appendPath(movieposter2.replace("/","")).build();
-
 
                 String PosterUrl = posterbuiltUri.toString();
-                String PosterUrl2 = poster2builtUri.toString();
 
-                resultposterStrs[i] = PosterUrl;
-                resultposter2Strs[i] = PosterUrl2;
-                resultnameStrs[i] = moviename;
-                resultdesStrs[i] = description;
-                resultratingStrs[i] = rating;
-                resultreleaseStrs[i] = release;
-                resultmovieIDStrs[i] = movie_id;
+                MovieClass movieObject = new MovieClass(moviename,PosterUrl,description,rating,release,movie_id,false);
+                movieList.add(movieObject);
             }
-
-            return new MovieClass(resultnameStrs, resultposterStrs, resultposter2Strs, resultdesStrs, resultratingStrs, resultreleaseStrs, resultmovieIDStrs);
+            return movieList;
         }
 
         @Override
-        protected void onPostExecute(final MovieClass myresult) {
+        protected void onPostExecute(final ArrayList<MovieClass> myresultMovieList) {
+
             try {
-                adapter = new CustomGrid(MainActivity.this,myresult.getTitle(),myresult.getPoster());
+                adapter = new CustomGrid(MainActivity.this,myresultMovieList);
                 moviegrid.setAdapter(adapter);
+                if(progress.isShowing()){
+                    progress.dismiss();
+                }
+                //Saving the Movie Array List to SharedPrefs so that it is available for offline access also.
+                SaveMovieList(MainActivity.this,myresultMovieList);
             }
             catch (NullPointerException e){
                 boolean connect = isOnline(MainActivity.this);
                 if (!connect){
                     Toast.makeText(MainActivity.this,"Unable to connect to Internet. Please check your connection.",Toast.LENGTH_SHORT).show();
+                    if (RetrieveMovieList(MainActivity.this)!=null){
+                        adapter = new CustomGrid(MainActivity.this,RetrieveMovieList(MainActivity.this));
+                        moviegrid.setAdapter(adapter);
+                        if(progress.isShowing()){
+                            progress.dismiss();
+                        }
+                    }
                 }
             }
                 moviegrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -262,26 +307,29 @@ public class MainActivity extends ActionBarActivity {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view,
                                         int position, long id) {
-                    String titlearray[] = myresult.getTitle();
-                    String desarray[] = myresult.getDescription();
-                    String ratingarray[] = myresult.getRating();
-                    String releasearray[] = myresult.getRelease();
-                    String poster2array[] = myresult.getPoster2();
-                    String MovieIDArray[] = myresult.getid();
-                    // Passing all the required data through this activity to Description(Movie Details) Activity
-                    Intent  intent = new Intent(MainActivity.this, DescriptionActivity.class);
-                    intent.putExtra("MovieTitle", titlearray[position]);
-                    intent.putExtra("MovieDescription", desarray[position]);
-                    intent.putExtra("MovieRating", ratingarray[position]);
-                    intent.putExtra("MovieRelease", releasearray[position]);
-                    intent.putExtra("PosterURL",poster2array[position]);
-                    intent.putExtra("MovieID",MovieIDArray[position]);
-                    MainActivity.this.startActivity(intent);
+                    if (myresultMovieList != null) {
+                        MovieClass IntentMovie = myresultMovieList.get(position);
+                        // Passing all the required data through this activity to Description(Movie Details) Activity
+                        Intent intent = new Intent(MainActivity.this, DescriptionActivity.class);
+                        intent.putExtra("MovieTitle", IntentMovie.getTitle());
+                        intent.putExtra("MovieDescription", IntentMovie.getDescription());
+                        intent.putExtra("MovieRating", IntentMovie.getRating());
+                        intent.putExtra("MovieRelease", IntentMovie.getRelease());
+                        intent.putExtra("PosterURL", IntentMovie.getPoster());
+                        intent.putExtra("MovieID", IntentMovie.getid());
+                        intent.putExtra("favStatus",IntentMovie.getFavstatus());
+                        MainActivity.this.startActivity(intent);
+                    }
+                    else{
+                        Toast.makeText(MainActivity.this,"Some problem was there. Please check your Internet Connection.",Toast.LENGTH_LONG).show();
+                    }
                 }
+
             });
             }
         }
-        public boolean isOnline(Context context) {
+
+    public boolean isOnline(Context context) {
         ConnectivityManager cm =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -292,6 +340,29 @@ public class MainActivity extends ActionBarActivity {
         return isConnected;
     }
 
+    public static void SaveMovieList(Context context, ArrayList<MovieClass> MovieList) {
+        SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor prefsEditor = mPrefs.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(MovieList);
+        prefsEditor.putString("MovieList", json);
+        prefsEditor.apply();
     }
+
+    public static ArrayList<MovieClass> RetrieveMovieList(Context context) {
+        ArrayList<MovieClass> MovieList;
+        SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        Gson gson = new Gson();
+        String json = mPrefs.getString("MovieList", "");
+        if (json.isEmpty()) {
+            MovieList = new ArrayList<MovieClass>();
+        } else {
+            Type type = new TypeToken<ArrayList<MovieClass>>() {
+            }.getType();
+            MovieList = gson.fromJson(json, type);
+        }
+        return MovieList;
+    }
+}
 
 

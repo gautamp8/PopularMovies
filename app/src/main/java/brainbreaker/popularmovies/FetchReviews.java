@@ -18,6 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import brainbreaker.popularmovies.Adapters.CustomGrid;
+import brainbreaker.popularmovies.Adapters.ReviewListAdapter;
 import brainbreaker.popularmovies.Models.ReviewClass;
 
 /**
@@ -104,7 +105,7 @@ public class FetchReviews extends AsyncTask<String, Void, ReviewClass> {
     @Override
     protected void onPostExecute(final ReviewClass reviewClass) {
         try {
-             CustomGrid.ReviewListAdapter adapter = new CustomGrid.ReviewListAdapter(mContext,reviewClass.getAuthor(),reviewClass.getContent(),reviewClass.getUrl());
+             ReviewListAdapter adapter = new ReviewListAdapter(mContext,reviewClass.getAuthor(),reviewClass.getContent(),reviewClass.getUrl());
              Reviewlist.setAdapter(adapter);
         }
         catch (NullPointerException e){
