@@ -99,11 +99,13 @@ public class MainActivity extends ActionBarActivity {
         switch (item.getItemId()){
             case R.id.action_popular :
                 Toast.makeText(MainActivity.this, "You wanted the list to be sort by popularity ", Toast.LENGTH_SHORT).show();
+                progress.show();
                 FetchMovieList fetchpopularMovieList = new FetchMovieList();
                 fetchpopularMovieList.execute("popularity");
                 return true;
             case R.id.action_rating:
                 Toast.makeText(MainActivity.this, "You wanted the list to be sort by rating ", Toast.LENGTH_SHORT).show();
+                progress.show();
                 FetchMovieList fetchratedMovieList = new FetchMovieList();
                 fetchratedMovieList.execute("rating");
                 return true;
@@ -112,12 +114,18 @@ public class MainActivity extends ActionBarActivity {
 
                 ArrayList<FavouriteMovies> FavMovieList = DescriptionActivity.RetrieveFavList(this);
                 if (FavMovieList!=null) {
-                    ArrayList<MovieClass> movieList = new ArrayList<>();
+                    final ArrayList<MovieClass> movieList = new ArrayList<>();
                     for (int i = 0; i < FavMovieList.size(); i++) {
                         movieList.add(FavMovieList.get(i).getMovie());
                     }
                     CustomGrid adapter = new CustomGrid(this, movieList);
                     moviegrid.setAdapter(adapter);
+                    moviegrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            StartActivity(movieList.get(position));
+                        }
+                    });
                 }
                 else {
                     Toast.makeText(MainActivity.this, "You don't have any favourites yet", Toast.LENGTH_SHORT).show();
@@ -288,6 +296,7 @@ public class MainActivity extends ActionBarActivity {
                 }
                 //Saving the Movie Array List to SharedPrefs so that it is available for offline access also.
                 SaveMovieList(MainActivity.this,myresultMovieList);
+
             }
             catch (NullPointerException e){
                 boolean connect = isOnline(MainActivity.this);
@@ -310,15 +319,7 @@ public class MainActivity extends ActionBarActivity {
                     if (myresultMovieList != null) {
                         MovieClass IntentMovie = myresultMovieList.get(position);
                         // Passing all the required data through this activity to Description(Movie Details) Activity
-                        Intent intent = new Intent(MainActivity.this, DescriptionActivity.class);
-                        intent.putExtra("MovieTitle", IntentMovie.getTitle());
-                        intent.putExtra("MovieDescription", IntentMovie.getDescription());
-                        intent.putExtra("MovieRating", IntentMovie.getRating());
-                        intent.putExtra("MovieRelease", IntentMovie.getRelease());
-                        intent.putExtra("PosterURL", IntentMovie.getPoster());
-                        intent.putExtra("MovieID", IntentMovie.getid());
-                        intent.putExtra("favStatus",IntentMovie.getFavstatus());
-                        MainActivity.this.startActivity(intent);
+                        StartActivity(IntentMovie);
                     }
                     else{
                         Toast.makeText(MainActivity.this,"Some problem was there. Please check your Internet Connection.",Toast.LENGTH_LONG).show();
@@ -338,6 +339,18 @@ public class MainActivity extends ActionBarActivity {
                 activeNetwork.isConnectedOrConnecting();
 
         return isConnected;
+    }
+
+    public void StartActivity(MovieClass IntentMovie){
+        Intent intent = new Intent(MainActivity.this, DescriptionActivity.class);
+        intent.putExtra("MovieTitle", IntentMovie.getTitle());
+        intent.putExtra("MovieDescription", IntentMovie.getDescription());
+        intent.putExtra("MovieRating", IntentMovie.getRating());
+        intent.putExtra("MovieRelease", IntentMovie.getRelease());
+        intent.putExtra("PosterURL", IntentMovie.getPoster());
+        intent.putExtra("MovieID", IntentMovie.getid());
+        intent.putExtra("favStatus",IntentMovie.getFavstatus());
+        MainActivity.this.startActivity(intent);
     }
 
     public static void SaveMovieList(Context context, ArrayList<MovieClass> MovieList) {

@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 
 import brainbreaker.popularmovies.Adapters.CustomGrid;
 import brainbreaker.popularmovies.Adapters.ReviewListAdapter;
@@ -24,7 +25,7 @@ import brainbreaker.popularmovies.Models.ReviewClass;
 /**
  * Created by brainbreaker on 6/2/16.
  */
-public class FetchReviews extends AsyncTask<String, Void, ReviewClass> {
+public class FetchReviews extends AsyncTask<String, Void, ArrayList<ReviewClass>> {
     private Context mContext;
     private ListView Reviewlist;
 
@@ -33,7 +34,7 @@ public class FetchReviews extends AsyncTask<String, Void, ReviewClass> {
         this.Reviewlist = Reviewlist;
     }
     @Override
-    protected ReviewClass doInBackground(String... MovieID) {
+    protected ArrayList<ReviewClass> doInBackground(String... MovieID) {
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
         HttpURLConnection urlConnection = null;
@@ -92,9 +93,8 @@ public class FetchReviews extends AsyncTask<String, Void, ReviewClass> {
         }
 
         try {
-            ReviewClass ReviewsObject = getMovieReviewsFromJson(ReviewJsonStr);
-            Log.e("YoutubeURL", ReviewsObject.getContent().toString());
-            return ReviewsObject;
+            ArrayList<ReviewClass> ReviewsList = getMovieReviewsFromJson(ReviewJsonStr);
+            return ReviewsList;
         } catch (Exception e) {
             Log.e("XYZ", e.getMessage(), e);
             e.printStackTrace();
@@ -103,9 +103,9 @@ public class FetchReviews extends AsyncTask<String, Void, ReviewClass> {
     }
 
     @Override
-    protected void onPostExecute(final ReviewClass reviewClass) {
+    protected void onPostExecute(final ArrayList<ReviewClass> reviewArrayList) {
         try {
-             ReviewListAdapter adapter = new ReviewListAdapter(mContext,reviewClass.getAuthor(),reviewClass.getContent(),reviewClass.getUrl());
+             ReviewListAdapter adapter = new ReviewListAdapter(mContext,reviewArrayList);
              Reviewlist.setAdapter(adapter);
         }
         catch (NullPointerException e){
@@ -114,7 +114,7 @@ public class FetchReviews extends AsyncTask<String, Void, ReviewClass> {
 
     }
 
-    private ReviewClass getMovieReviewsFromJson(String movieReviewsJsonStr)
+    private ArrayList<ReviewClass> getMovieReviewsFromJson(String movieReviewsJsonStr)
             throws JSONException {
 
         // These are the names of the JSON objects that need to be extracted.
@@ -127,10 +127,7 @@ public class FetchReviews extends AsyncTask<String, Void, ReviewClass> {
         JSONObject moviesJson = new JSONObject(movieReviewsJsonStr);
         JSONArray resultArray = moviesJson.getJSONArray(TMDB_results);
 
-        String[] resultauthorStrs = new String[resultArray.length()];
-        String[] resultcontentStrs = new String[resultArray.length()];
-        String[] resulturlStrs = new String[resultArray.length()];
-
+        ArrayList<ReviewClass> reviewList = new ArrayList<>();
         for (int i = 0; i < resultArray.length(); i++) {
 
             String author;
@@ -143,12 +140,11 @@ public class FetchReviews extends AsyncTask<String, Void, ReviewClass> {
             content = moviereview.get(TMDB_content).toString();
             url = moviereview.get(TMDB_url).toString();
 
-            resultauthorStrs[i] = author;
-            resultcontentStrs[i] = content;
-            resulturlStrs[i] = url;
+            ReviewClass review = new ReviewClass(author,content,url);
+            reviewList.add(review);
         }
 
-        return new ReviewClass(resultauthorStrs, resultcontentStrs, resulturlStrs);
+        return reviewList;
     }
 
 }

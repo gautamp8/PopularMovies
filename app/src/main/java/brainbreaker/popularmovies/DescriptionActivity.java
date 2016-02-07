@@ -39,8 +39,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
+import java.security.PublicKey;
 import java.util.ArrayList;
 
+import brainbreaker.popularmovies.Adapters.ReviewListAdapter;
 import brainbreaker.popularmovies.Models.FavouriteMovies;
 import brainbreaker.popularmovies.Models.MovieClass;
 import brainbreaker.popularmovies.Models.ReviewClass;
@@ -51,6 +53,7 @@ public class DescriptionActivity extends ActionBarActivity {
     ImageView VideoImageView;
     ImageView PlayButton;
     ListView ReviewList;
+    public static ArrayList<String> FavouriteMovieNames = new ArrayList<>();
     ProgressDialog progress;
     public static ArrayList<FavouriteMovies> FavouriteList = new ArrayList<>();
     @Override
@@ -64,6 +67,7 @@ public class DescriptionActivity extends ActionBarActivity {
         final String moviedescription = intent.getStringExtra("MovieDescription");
         final String movierating = intent.getStringExtra("MovieRating");
         final String movierelease = intent.getStringExtra("MovieRelease");
+
         MovieID = intent.getStringExtra("MovieID");
 
         /** CHANGING THE TITLE OF ACTION BAR AND ENABLING THE BACK BUTTON**/
@@ -82,15 +86,20 @@ public class DescriptionActivity extends ActionBarActivity {
         PlayButton = (ImageView) findViewById(R.id.VideoPreviewPlayButton);
         PlayButton.setVisibility(View.GONE);
 
-        final ImageButton fav = (ImageButton) findViewById(R.id.Favourite);
-        //If the movie is added to favourite show the highlighted star.
-        if(intent.getBooleanExtra("favStatus",false)){
-            fav.setBackgroundResource(android.R.drawable.star_big_on);
-        }
-
         ReviewList = (ListView) findViewById(R.id.ReviewlistView);
         VideoImageView = (ImageView) findViewById(R.id.poster);
 
+        final ImageButton fav = (ImageButton) findViewById(R.id.Favourite);
+        //If a movie name is added to favourites show the highlighted star(Get The fav movie list from Shared Preferences).
+        for (int i = 0; i<GetfavMovieNameList(this).size(); i++)
+        {
+            if (GetfavMovieNameList(this).get(i).equals(movietitle)){
+                fav.setBackgroundResource(android.R.drawable.star_big_on);
+                FavouriteMovies favouriteMovie = new FavouriteMovies(RetrieveFavList(this).get(i).getMovie(),RetrieveFavList(this).get(i).getReviews());
+                ReviewListAdapter adapter = new ReviewListAdapter(this,favouriteMovie.getReviews());
+                ReviewList.setAdapter(adapter);
+            }
+        }
         // SHOW A PROGRESS DIALOG
         progress = new ProgressDialog(this);
         progress.setTitle("Loading Video...");
@@ -117,7 +126,9 @@ public class DescriptionActivity extends ActionBarActivity {
                 }
                 MovieClass movieObject = new MovieClass(movietitle, PosterURL, moviedescription, movierating, movierelease,MovieID,true);
                 FavouriteList.add(new FavouriteMovies(movieObject, reviewlist));
+                FavouriteMovieNames.add(movietitle);
                 SaveFavList(DescriptionActivity.this,FavouriteList);
+                SetfavMovieName(DescriptionActivity.this,FavouriteMovieNames);
             }
         });
 
@@ -279,12 +290,37 @@ public class DescriptionActivity extends ActionBarActivity {
         Gson gson = new Gson();
         String json = mPrefs.getString("FavMovieList", "");
         if (json.isEmpty()) {
-            FavList = new ArrayList<FavouriteMovies>();
+            FavList = new ArrayList<>();
         } else {
             Type type = new TypeToken<ArrayList<FavouriteMovies>>() {
             }.getType();
             FavList = gson.fromJson(json, type);
         }
         return FavList;
+    }
+
+    public static void SetfavMovieName(Context context, ArrayList<String> favMovie) {
+        SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor prefsEditor = mPrefs.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(favMovie);
+        prefsEditor.putString("FavMovieName", json);
+        prefsEditor.apply();
+    }
+
+    public static ArrayList<String> GetfavMovieNameList(Context context) {
+        ArrayList<String> favMovieList;
+        SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        Gson gson = new Gson();
+        String json = mPrefs.getString("FavMovieName", "");
+        if (json.isEmpty()) {
+            favMovieList = new ArrayList<String>();
+        } else {
+            Type type = new TypeToken<ArrayList<String>>() {
+            }.getType();
+
+            favMovieList = gson.fromJson(json, type);
+        }
+        return favMovieList;
     }
 }

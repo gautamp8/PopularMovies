@@ -6,6 +6,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+
 import brainbreaker.popularmovies.Models.ReviewClass;
 import brainbreaker.popularmovies.R;
 
@@ -13,24 +15,20 @@ import brainbreaker.popularmovies.R;
  * Created by brainbreaker on 6/2/16.
  */
 public class ReviewListAdapter extends BaseAdapter {
-    String[] Author;
-    String[] Content;
-    String[] URL;
+    ArrayList<ReviewClass> reviewList;
     Context context;
-    public ReviewListAdapter(Context context, String [] Author, String [] Content, String[] URL){
+    public ReviewListAdapter(Context context, ArrayList<ReviewClass> reviewList){
         this.context = context;
-        this.Author = Author;
-        this.Content = Content;
-        this.URL = URL;
+        this.reviewList = reviewList;
     }
     @Override
     public int getCount() {
-        return Author.length;
+        return reviewList.size();
     }
 
     @Override
     public ReviewClass getItem(int position) {
-        return new ReviewClass(Author,Content,URL);
+        return reviewList.get(position);
     }
 
     @Override
@@ -54,8 +52,9 @@ public class ReviewListAdapter extends BaseAdapter {
         else {
             item = (ViewItemHolder) convertView.getTag();
         }
-        item.ReviewAuthor.setText(Author[position]);
-        item.ReviewContent.setText(Content[position]);
+        ReviewClass currentReview = reviewList.get(position);
+        item.ReviewAuthor.setText(currentReview.getAuthor());
+        item.ReviewContent.setText(currentReview.getContent());
 
         return convertView;
     }
