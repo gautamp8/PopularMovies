@@ -63,4 +63,3 @@ public class ReviewListAdapter extends BaseAdapter {
         TextView ReviewContent;
     }
 }
-

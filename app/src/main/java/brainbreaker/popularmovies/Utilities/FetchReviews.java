@@ -1,4 +1,4 @@
-package brainbreaker.popularmovies;
+package brainbreaker.popularmovies.Utilities;
 
 import android.content.Context;
 import android.net.Uri;
@@ -17,21 +17,21 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-
-import brainbreaker.popularmovies.Adapters.CustomGrid;
-import brainbreaker.popularmovies.Adapters.ReviewListAdapter;
+import brainbreaker.popularmovies.Constants.ApplicationConstants;
+import brainbreaker.popularmovies.Listeners.ReviewListLoadedListener;
+import brainbreaker.popularmovies.Mappers.JSONMapper;
 import brainbreaker.popularmovies.Models.ReviewClass;
+import brainbreaker.popularmovies.R;
 
 /**
  * Created by brainbreaker on 6/2/16.
  */
 public class FetchReviews extends AsyncTask<String, Void, ArrayList<ReviewClass>> {
-    private Context mContext;
-    private ListView Reviewlist;
+    private String api_key = ApplicationConstants.apikey;
+    private ReviewListLoadedListener listener;
 
-    public FetchReviews(Context context, ListView Reviewlist) {
-        mContext = context;
-        this.Reviewlist = Reviewlist;
+    public FetchReviews(ReviewListLoadedListener listLoadedListener) {
+        this.listener = listLoadedListener;
     }
     @Override
     protected ArrayList<ReviewClass> doInBackground(String... MovieID) {
@@ -44,7 +44,6 @@ public class FetchReviews extends AsyncTask<String, Void, ArrayList<ReviewClass>
         String ReviewJsonStr = null;
         StringBuilder buffer = new StringBuilder();
         // CREATE A REQUEST TO TMDB DATABASE AND OPEN THE CONNECTION
-        String api_key = mContext.getResources().getString(R.string.api_key);
         Uri Reviews = Uri.parse("http://api.themoviedb.org/3/movie").buildUpon()
                 .appendPath(MovieID[0])
                 .appendPath("reviews")
@@ -93,8 +92,8 @@ public class FetchReviews extends AsyncTask<String, Void, ArrayList<ReviewClass>
         }
 
         try {
-            ArrayList<ReviewClass> ReviewsList = getMovieReviewsFromJson(ReviewJsonStr);
-            return ReviewsList;
+            ArrayList<ReviewClass> reviewsList = JSONMapper.getMovieReviewsFromJson(ReviewJsonStr);
+            return reviewsList;
         } catch (Exception e) {
             Log.e("XYZ", e.getMessage(), e);
             e.printStackTrace();
@@ -104,47 +103,6 @@ public class FetchReviews extends AsyncTask<String, Void, ArrayList<ReviewClass>
 
     @Override
     protected void onPostExecute(final ArrayList<ReviewClass> reviewArrayList) {
-        try {
-             ReviewListAdapter adapter = new ReviewListAdapter(mContext,reviewArrayList);
-             Reviewlist.setAdapter(adapter);
-        }
-        catch (NullPointerException e){
-            e.printStackTrace();
-        }
-
+        listener.reviewListLoaded(reviewArrayList);
     }
-
-    private ArrayList<ReviewClass> getMovieReviewsFromJson(String movieReviewsJsonStr)
-            throws JSONException {
-
-        // These are the names of the JSON objects that need to be extracted.
-        final String TMDB_results = "results";
-        final String TMDB_author = "author";
-        final String TMDB_content = "content";
-        final String TMDB_url = "url";
-
-
-        JSONObject moviesJson = new JSONObject(movieReviewsJsonStr);
-        JSONArray resultArray = moviesJson.getJSONArray(TMDB_results);
-
-        ArrayList<ReviewClass> reviewList = new ArrayList<>();
-        for (int i = 0; i < resultArray.length(); i++) {
-
-            String author;
-            String content;
-            String url;
-
-            // Get the JSON object in which movie title is there
-            JSONObject moviereview = resultArray.getJSONObject(i);
-            author = moviereview.get(TMDB_author).toString();
-            content = moviereview.get(TMDB_content).toString();
-            url = moviereview.get(TMDB_url).toString();
-
-            ReviewClass review = new ReviewClass(author,content,url);
-            reviewList.add(review);
-        }
-
-        return reviewList;
-    }
-
 }

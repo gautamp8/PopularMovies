@@ -1,0 +1,138 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="fill_parent"
+    android:layout_width="fill_parent"
+    tools:context="brainbreaker.popularmovies.Activities.DescriptionActivityFragment">
+
+    <android.support.v7.widget.CardView
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/card_view"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFF"
+        card_view:cardBackgroundColor="#FFF"
+        card_view:cardElevation="10dp"
+        card_view:cardCornerRadius="4dp"
+        android:focusable="false"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_height="wrap_content" android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            tools:context="brainbreaker.popularmovies.Description">
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="fill_parent"
+                    android:layout_height="200dp"
+                    android:background="#E1F5FE"
+                    android:id="@+id/poster"
+                    android:src="@mipmap/ic_launcher"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true" />
+
+                <ImageView
+                    android:id="@+id/videoPreviewPlayButton"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@android:drawable/ic_media_play"
+                    android:foregroundGravity="center_horizontal"
+                    android:layout_centerVertical="true"
+                    android:layout_centerHorizontal="true" />
+
+            </RelativeLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Description"
+                android:id="@+id/description"
+                android:layout_marginTop="20dp"
+                android:textSize="12sp"
+                android:fontFamily="serif" />
+
+
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="5dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Rating"
+                    android:id="@+id/rating"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:textAlignment="gravity"
+                    android:gravity="center_horizontal|right"
+                    android:fontFamily="serif" />
+
+                <ImageButton
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:id="@+id/favourite"
+                    android:src="@android:drawable/star_big_off"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:background="#00fdfdfe" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Release Date"
+                    android:id="@+id/release"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:textAlignment="gravity"
+                    android:gravity="center_horizontal|right"
+                    android:fontFamily="serif"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true" />
+
+            </RelativeLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reviews"
+                android:fontFamily="serif"
+                android:textSize="17sp"
+                android:id="@+id/textView3"
+                android:layout_marginTop="5dp" />
+
+            <brainbreaker.popularmovies.Extras.NestedListView
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:id="@+id/reviewListView"
+                android:layout_gravity="center_horizontal"
+                android:focusable="false"
+                android:layout_marginTop="5dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="No Reviews Yet"
+                android:fontFamily="serif"
+                android:textSize="17sp"
+                android:id="@+id/emptyReviewList"
+                android:layout_marginTop="5dp"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+    </android.support.v7.widget.CardView>
+</ScrollView>

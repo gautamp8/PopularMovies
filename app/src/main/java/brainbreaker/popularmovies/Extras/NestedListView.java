@@ -1,4 +1,4 @@
-package brainbreaker.popularmovies.Models;
+package brainbreaker.popularmovies.Extras;
 
 import android.content.Context;
 import android.util.AttributeSet;
