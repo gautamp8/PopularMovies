@@ -1,6 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
@@ -8,8 +8,16 @@
     <fragment
         android:id="@+id/mainActivityfragment"
         android:name="brainbreaker.popularmovies.Activities.MainActivityFragment"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
+        android:layout_weight="4"
         android:layout_height="match_parent"
         tools:layout="@layout/fragment_main" />
+
+
+    <FrameLayout
+        android:id="@+id/movie_detail_container"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="6" />
 
 </LinearLayout>

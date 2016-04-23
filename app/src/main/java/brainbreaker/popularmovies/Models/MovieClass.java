@@ -1,11 +1,13 @@
 package brainbreaker.popularmovies.Models;
 
-import java.util.ArrayList;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 
 /**
  * Created by brainbreaker on 30/1/16.
  */
-public class MovieClass {
+public class MovieClass{
 
     private String title ;
     private String poster;
@@ -50,5 +52,20 @@ public class MovieClass {
     }
     public boolean getFavstatus(){
         return favStatus;
+    }
+
+    // Parcelling part
+    public MovieClass(Parcel in){
+        String[] data = new String[6];
+        Boolean[] bool = new Boolean[1];
+
+        in.readStringArray(data);
+        this.title = data[0];
+        this.poster = data[1];
+        this.description = data[2];
+        this.rating = data[3];
+        this.release = data[4];
+        this.id = data[5];
+        this.favStatus = bool[0];
     }
 }

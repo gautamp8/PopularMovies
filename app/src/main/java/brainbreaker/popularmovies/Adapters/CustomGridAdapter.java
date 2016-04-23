@@ -16,6 +16,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 import brainbreaker.popularmovies.Activities.DescriptionActivity;
+import brainbreaker.popularmovies.Listeners.ActivityCallback;
 import brainbreaker.popularmovies.Models.MovieClass;
 import brainbreaker.popularmovies.Models.ReviewClass;
 import brainbreaker.popularmovies.R;
@@ -27,8 +28,10 @@ public class CustomGridAdapter extends RecyclerView.Adapter<CustomGridAdapter.Vi
 
     private Context mContext;
     private ArrayList<MovieClass> movielist;
+    private ActivityCallback onClickListener;
     public CustomGridAdapter (Context c, ArrayList<MovieClass> movielist) {
         mContext = c;
+        this.onClickListener = (ActivityCallback) c;
         this.movielist = movielist;
     }
 
@@ -55,8 +58,7 @@ public class CustomGridAdapter extends RecyclerView.Adapter<CustomGridAdapter.Vi
             public void onClick(View v) {
                 if (movielist != null) {
                     MovieClass IntentMovie = movielist.get(position);
-                    // Passing all the required data through this activity to Description(Movie Details) Activity
-                    startActivity(IntentMovie);
+                    onClickListener.onMovieItemClicked(IntentMovie);
                 }
                 else{
                     Toast.makeText(mContext,"Some problem was there. Please check your Internet Connection.",Toast.LENGTH_LONG).show();
@@ -91,17 +93,5 @@ public class CustomGridAdapter extends RecyclerView.Adapter<CustomGridAdapter.Vi
             titleTextView = (TextView)itemView.findViewById(R.id.grid_text);
             rootView = itemView;
         }
-    }
-
-    public void startActivity(MovieClass IntentMovie){
-        Intent intent = new Intent(mContext, DescriptionActivity.class);
-        intent.putExtra("MovieTitle", IntentMovie.getTitle());
-        intent.putExtra("MovieDescription", IntentMovie.getDescription());
-        intent.putExtra("MovieRating", IntentMovie.getRating());
-        intent.putExtra("MovieRelease", IntentMovie.getRelease());
-        intent.putExtra("PosterURL", IntentMovie.getPoster());
-        intent.putExtra("MovieID", IntentMovie.getid());
-        intent.putExtra("favStatus",IntentMovie.getFavstatus());
-        mContext.startActivity(intent);
     }
 }

@@ -7,18 +7,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import brainbreaker.popularmovies.Adapters.ReviewListAdapter;
+import brainbreaker.popularmovies.Extras.Connectivity;
 import brainbreaker.popularmovies.Listeners.FetchVideoListener;
 import brainbreaker.popularmovies.Listeners.ReviewListLoadedListener;
 import brainbreaker.popularmovies.Models.FavouriteMovies;
@@ -41,11 +44,17 @@ public class DescriptionActivityFragment extends Fragment implements ReviewListL
     String movierelease;
 
     String TAG = "DescriptionActivityFragment";
+    public static final String ARG_ITEM_ID = "item_id";
 
+    TextView movieTitle;
+    TextView description;
+    TextView rating;
+    TextView release;
     ImageView videoImageView;
     ImageView playButton;
     ListView reviewListView;
     TextView emptyReviewList;
+
     public static ArrayList<String> FavouriteMovieNames = new ArrayList<>();
     ProgressDialog progress;
     public static ArrayList<FavouriteMovies> FavouriteList = new ArrayList<>();
@@ -58,31 +67,56 @@ public class DescriptionActivityFragment extends Fragment implements ReviewListL
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_description, container, false);
-
-        Log.e("DescriptionFragment",getActivity().getIntent().getExtras().getString("MovieTitle"));
-        movieID = getActivity().getIntent().getExtras().getString("MovieID");
-        movietitle = getActivity().getIntent().getExtras().getString("MovieTitle");
-        posterURL = getActivity().getIntent().getExtras().getString("PosterURL");
-        moviedescription = getActivity().getIntent().getExtras().getString("MovieDescription");
-        movierating = getActivity().getIntent().getExtras().getString("MovieRating");
-        movierelease = getActivity().getIntent().getExtras().getString("MovieRelease");
-
-        final TextView description = (TextView) rootView.findViewById(R.id.description);
-        description.setText(moviedescription);
-
-        final TextView rating = (TextView) rootView.findViewById(R.id.rating);
-        rating.setText("Rating: "+movierating + "/10.0");
-
-        final TextView release = (TextView) rootView.findViewById(R.id.release);
-        release.setText("Release Date: "+movierelease);
-
+        movieTitle = (TextView) rootView.findViewById(R.id.movieTitle);
+        description = (TextView) rootView.findViewById(R.id.description);
+        rating = (TextView) rootView.findViewById(R.id.rating);
+        release = (TextView) rootView.findViewById(R.id.release);
         emptyReviewList = (TextView) rootView.findViewById(R.id.emptyReviewList);
-
         playButton = (ImageView) rootView.findViewById(R.id.videoPreviewPlayButton);
-        playButton.setVisibility(View.GONE);
-
         reviewListView = (ListView) rootView.findViewById(R.id.reviewListView);
         videoImageView = (ImageView) rootView.findViewById(R.id.poster);
+
+        LinearLayout descriptionLayout = (LinearLayout) rootView.findViewById(R.id.description_layout);
+        TextView noItemSelectedTV = (TextView) rootView.findViewById(R.id.selectItemTextView);
+
+        if (getActivity().getIntent().getExtras()!=null) {
+            movieID = getActivity().getIntent().getExtras().getString("MovieID");
+            movietitle = getActivity().getIntent().getExtras().getString("MovieTitle");
+            posterURL = getActivity().getIntent().getExtras().getString("PosterURL");
+            moviedescription = getActivity().getIntent().getExtras().getString("MovieDescription");
+            movierating = getActivity().getIntent().getExtras().getString("MovieRating");
+            movierelease = getActivity().getIntent().getExtras().getString("MovieRelease");
+        }
+        else if(getArguments()!=null) {
+            Bundle bundle = getArguments();
+            Log.e("MovieID",bundle.getString("MovieID"));
+            movieID = bundle.getString("MovieID");
+            movietitle = bundle.getString("MovieTitle");
+            posterURL = bundle.getString("PosterURL");
+            moviedescription = bundle.getString("MovieDescription");
+            movierating = bundle.getString("MovieRating");
+            movierelease = bundle.getString("MovieRelease");
+        }
+        else {
+            descriptionLayout.setVisibility(View.GONE);
+            movieID = "";
+            movietitle = "";
+            posterURL = "";
+            moviedescription = "";
+            movierating = "";
+            movierelease = "";
+            noItemSelectedTV.setVisibility(View.VISIBLE);
+            if (!Connectivity.isOnline(getActivity())){
+                noItemSelectedTV.setText("No Internet Connection");
+            }
+        }
+
+
+        movieTitle.setText(movietitle);
+        description.setText(moviedescription);
+        rating.setText("Rating: "+movierating + "/10.0");
+        release.setText("Release Date: "+movierelease);
+        playButton.setVisibility(View.GONE);
 
         final ImageButton fav = (ImageButton) rootView.findViewById(R.id.favourite);
         //If a movie name is added to favourites show the highlighted star(Get The fav movie list from Shared Preferences).

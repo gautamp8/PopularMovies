@@ -25,6 +25,19 @@ public class DescriptionActivity extends AppCompatActivity {
         /** CHANGING THE TITLE OF ACTION BAR AND ENABLING THE BACK BUTTON**/
         getSupportActionBar().setTitle(movietitle);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        if (savedInstanceState == null) {
+            // Create the detail fragment and add it to the activity
+            // using a fragment transaction.
+            Bundle arguments = new Bundle();
+            arguments.putString(DescriptionActivityFragment.ARG_ITEM_ID,
+                    getIntent().getStringExtra(DescriptionActivityFragment.ARG_ITEM_ID));
+            DescriptionActivityFragment fragment = new DescriptionActivityFragment();
+            fragment.setArguments(arguments);
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.movie_detail_container, fragment)
+                    .commit();
+        }
     }
 
     /** WHEN CLICKED ON BACK BUTTON **/
