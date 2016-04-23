@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCallback{
         // Check for the Internet Connection
         boolean connect = Connectivity.isOnline(this);
         if (!connect){
-            showConnectionErrorDialog(this,"ERROR","You are not connected to Internet. Please check your connection and try again. Don't worry you can still browse your favourites from Options Menu on Top Right.",null);
+            showConnectionErrorDialog(this,"ERROR","You are not connected to Internet. Please check your connection and try again. Don't worry you can still browse offline saved movies and your favourites from Options Menu on top right.",null);
         }
 
     }
