@@ -55,6 +55,8 @@ public class DescriptionActivityFragment extends Fragment implements ReviewListL
     ListView reviewListView;
     TextView emptyReviewList;
 
+    boolean alreadyFav = false;
+
     public static ArrayList<String> FavouriteMovieNames = new ArrayList<>();
     ProgressDialog progress;
     public static ArrayList<FavouriteMovies> FavouriteList = new ArrayList<>();
@@ -146,18 +148,31 @@ public class DescriptionActivityFragment extends Fragment implements ReviewListL
             @Override
             public void onClick(View v) {
                 fav.setBackgroundResource(android.R.drawable.star_big_on);
-                Toast.makeText(getActivity(),"Movie Added as favourite",Toast.LENGTH_LONG).show();
-                ArrayList<ReviewClass> reviewlist = new ArrayList<ReviewClass>();
-                int len = reviewListView.getCount();
-                for (int i = 0; i < len; i++) {
-                    ReviewClass currentReview = (ReviewClass) reviewListView.getAdapter().getItem(i);
-                    reviewlist.add(currentReview);
+
+                for (int i=0; i<MyApplication.retrieveFavList(getActivity()).size();i++){
+                    MovieClass movie = MyApplication.retrieveFavList(getActivity()).get(i).getMovie();
+                    if (movie.getid().equals(movieID)){
+                        Toast.makeText(getActivity(),"Movie is already available as favourite",Toast.LENGTH_LONG).show();
+                        alreadyFav = true;
+                        return;
+                    }
                 }
-                MovieClass movieObject = new MovieClass(movietitle, posterURL, moviedescription, movierating, movierelease,movieID,true);
-                FavouriteList.add(new FavouriteMovies(movieObject, reviewlist));
-                FavouriteMovieNames.add(movietitle);
-                MyApplication.saveFavList(getActivity(),FavouriteList);
-                MyApplication.setfavMovieName(getActivity(),FavouriteMovieNames);
+
+                if (!alreadyFav){
+                    Toast.makeText(getActivity(),"Movie Added as favourite",Toast.LENGTH_LONG).show();
+                    ArrayList<ReviewClass> reviewlist = new ArrayList<ReviewClass>();
+                    int len = reviewListView.getCount();
+                    for (int i = 0; i < len; i++) {
+                        ReviewClass currentReview = (ReviewClass) reviewListView.getAdapter().getItem(i);
+                        reviewlist.add(currentReview);
+                    }
+                    MovieClass movieObject = new MovieClass(movietitle, posterURL, moviedescription, movierating, movierelease,movieID,true);
+                    FavouriteList.add(new FavouriteMovies(movieObject, reviewlist));
+                    FavouriteMovieNames.add(movietitle);
+                    MyApplication.saveFavList(getActivity(),FavouriteList);
+                    MyApplication.setfavMovieName(getActivity(),FavouriteMovieNames);
+                }
+
             }
         });
         return rootView;
