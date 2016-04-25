@@ -1,6 +1,7 @@
 package brainbreaker.popularmovies.Activities;
 
 import android.app.Activity;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -10,6 +11,7 @@ import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -113,7 +115,6 @@ public class DescriptionActivityFragment extends Fragment implements ReviewListL
             }
         }
 
-
         movieTitle.setText(movietitle);
         description.setText(moviedescription);
         rating.setText("Rating: "+movierating + "/10.0");
@@ -147,8 +148,6 @@ public class DescriptionActivityFragment extends Fragment implements ReviewListL
         fav.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                fav.setBackgroundResource(android.R.drawable.star_big_on);
-
                 for (int i=0; i<MyApplication.retrieveFavList(getActivity()).size();i++){
                     MovieClass movie = MyApplication.retrieveFavList(getActivity()).get(i).getMovie();
                     if (movie.getid().equals(movieID)){
@@ -159,7 +158,8 @@ public class DescriptionActivityFragment extends Fragment implements ReviewListL
                 }
 
                 if (!alreadyFav){
-                    Toast.makeText(getActivity(),"Movie Added as favourite",Toast.LENGTH_LONG).show();
+                    fav.setBackgroundResource(android.R.drawable.star_big_on);
+                    Toast.makeText(getActivity(),"Movie added as favourite",Toast.LENGTH_LONG).show();
                     ArrayList<ReviewClass> reviewlist = new ArrayList<ReviewClass>();
                     int len = reviewListView.getCount();
                     for (int i = 0; i < len; i++) {
@@ -227,5 +227,4 @@ public class DescriptionActivityFragment extends Fragment implements ReviewListL
             e.printStackTrace();
         }
     }
-
 }

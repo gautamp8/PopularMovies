@@ -19,7 +19,7 @@ import brainbreaker.popularmovies.Models.MovieClass;
 import brainbreaker.popularmovies.R;
 
 public class MainActivity extends AppCompatActivity implements ActivityCallback{
-    OverflowMenuClick listener;
+    public OverflowMenuClick listener;
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCallback{
         if (!connect){
             showConnectionErrorDialog(this,"ERROR","You are not connected to Internet. Please check your connection and try again. Don't worry you can still browse offline saved movies and your favourites from Options Menu on top right.",null);
         }
-
     }
 
     boolean doubleBackToExitPressedOnce = false;
@@ -89,11 +88,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCallback{
             case R.id.action_rating:
                 Toast.makeText(MainActivity.this, "Sorted By Rating", Toast.LENGTH_SHORT).show();
                 listener.onOverflowItemClicked("rating");
+                getSupportActionBar().setTitle("Top Rated Movies");
                 return true;
 
             case R.id.action_fav:
                 Toast.makeText(MainActivity.this, "Your favourites", Toast.LENGTH_SHORT).show();
                 listener.onOverflowItemClicked("favourite");
+                getSupportActionBar().setTitle("Your Favourites");
                 return true;
 
         }
@@ -156,7 +157,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCallback{
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.dismiss();
-                        openOptionsMenu();
+                        listener.onOverflowItemClicked("favourite");
+                        getSupportActionBar().setTitle("Your Favourites");
                     }
                 });
         builder1.setNegativeButton("Exit",

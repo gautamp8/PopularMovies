@@ -33,11 +33,6 @@ public class DescriptionActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                // BACK CLICKED. GO TO HOME.
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-                //FINISH THE CURRENT ACTIVITY
                 this.finish();
                 return true;
             default:

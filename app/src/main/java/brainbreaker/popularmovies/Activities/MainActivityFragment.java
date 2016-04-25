@@ -3,7 +3,11 @@ package brainbreaker.popularmovies.Activities;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,6 +24,7 @@ import brainbreaker.popularmovies.Models.MovieClass;
 import brainbreaker.popularmovies.MyApplication;
 import brainbreaker.popularmovies.R;
 import brainbreaker.popularmovies.Utilities.FetchMovieList;
+import brainbreaker.popularmovies.Utilities.NetworkUtils;
 
 
 /**
@@ -46,17 +51,19 @@ public class MainActivityFragment extends Fragment implements MovieListLoadedLis
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 2);
         movieGridRecyclerView.setLayoutManager(gridLayoutManager);
 
+        showProgressDialog();
+        FetchMovieList fetchPopularMovieList = new FetchMovieList(MainActivityFragment.this);
+        fetchPopularMovieList.execute("popularity");
+
+        return rootView;
+    }
+
+    private void showProgressDialog() {
         // SHOW A PROGRESS DIALOG
         progress = new ProgressDialog(getActivity());
         progress.setTitle("Loading Movies...");
         progress.setCancelable(false);
         progress.show();
-
-        FetchMovieList fetchPopularMovieList = new FetchMovieList(MainActivityFragment.this);
-        fetchPopularMovieList.execute("popularity");
-
-        return rootView;
-
     }
 
     @Override
@@ -124,9 +131,60 @@ public class MainActivityFragment extends Fragment implements MovieListLoadedLis
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        getActivity().registerReceiver(networkReceiver, filter);
+    }
+
+    @Override
     public void onAttach(Activity activity){
         super.onAttach(activity);
         Context context = getActivity();
         ((MainActivity)context).listener = this;
+
     }
+
+    private BroadcastReceiver networkReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String status = NetworkUtils.getConnectivityStatusString(context);
+            if (!status.equals("Not connected to Internet")){
+                if (getActivity().getActionBar()!=null) {
+                    String title = getActivity().getActionBar().getTitle().toString();
+                    switch (title) {
+                        case "Popular Movies": {
+                            FetchMovieList fetchPopularMovieList = new FetchMovieList(MainActivityFragment.this);
+                            fetchPopularMovieList.execute("popularity");
+                            break;
+                        }
+                        case "Top Rated": {
+                            FetchMovieList fetchPopularMovieList = new FetchMovieList(MainActivityFragment.this);
+                            fetchPopularMovieList.execute("rating");
+                            break;
+                        }
+                        default: {
+                            ArrayList<FavouriteMovies> FavMovieList = MyApplication.retrieveFavList(getActivity());
+                            if (FavMovieList != null) {
+                                final ArrayList<MovieClass> movieList = new ArrayList<>();
+                                for (int i = 0; i < FavMovieList.size(); i++) {
+                                    movieList.add(FavMovieList.get(i).getMovie());
+                                }
+                                populateList(movieList);
+                            }
+                            break;
+                        }
+                    }
+                }
+                else {
+                    if (getActivity().getActionBar()!=null) {
+                        getActivity().getActionBar().setTitle("Popular Movies");
+                        FetchMovieList fetchPopularMovieList = new FetchMovieList(MainActivityFragment.this);
+                        fetchPopularMovieList.execute("popularity");
+                    }
+
+                }
+            }
+        }
+    };
 }

@@ -28,6 +28,7 @@ public class FetchMovieList extends AsyncTask<String, Void, ArrayList<MovieClass
     }
     @Override
     protected ArrayList<MovieClass> doInBackground(String... sort) {
+
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
         HttpURLConnection urlConnection = null;
@@ -38,27 +39,22 @@ public class FetchMovieList extends AsyncTask<String, Void, ArrayList<MovieClass
         String sort_by = sort[0];
         Uri builtUri;
 
-
         try {
 
-            if (sort_by.equals("kids")) {
-                sort_by = "vote_average.desc";
-                builtUri = Uri.parse("http://api.themoviedb.org/3/discover/movie?").buildUpon()
-                        .appendQueryParameter("certification_country", "US")
-                        .appendQueryParameter("certification", "R")
-                        .appendQueryParameter("sort_by", sort_by)
-                        .appendQueryParameter("api_key", apikey).build();
-            } else if (sort_by.equals("popularity")) {
-                sort_by = "popularity.desc";
-                builtUri = Uri.parse("http://api.themoviedb.org/3/discover/movie?").buildUpon()
-                        .appendQueryParameter("sort_by", sort_by)
-                        .appendQueryParameter("api_key", apikey).build();
-            } else {
-                sort_by = "vote_average.desc";
-                builtUri = Uri.parse("http://api.themoviedb.org/3/discover/movie?").buildUpon()
-                        .appendQueryParameter("certification_country", "US")
-                        .appendQueryParameter("sort_by", sort_by)
-                        .appendQueryParameter("api_key", apikey).build();
+            switch (sort_by) {
+                // Sample URL: http://api.themoviedb.org/3/movie/popular?api_key=[YOUR_API_KEY]
+                case "rating":
+                    builtUri = Uri.parse("http://api.themoviedb.org/3/movie/top_rated").buildUpon()
+                            .appendQueryParameter("api_key", apikey).build();
+                    break;
+                case "popularity":
+                    builtUri = Uri.parse("http://api.themoviedb.org/3/movie/popular").buildUpon()
+                            .appendQueryParameter("api_key", apikey).build();
+                    break;
+                default:
+                    builtUri = Uri.parse("http://api.themoviedb.org/3/movie/popular").buildUpon()
+                            .appendQueryParameter("api_key", apikey).build();
+                    break;
             }
             // Construct the URL to fetch the movie list
             URL url = new URL(builtUri.toString());

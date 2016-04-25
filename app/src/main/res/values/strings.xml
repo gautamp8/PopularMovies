@@ -2,7 +2,7 @@
     <string name="app_name">Popular Movies</string>
 
     <string name="hello_world">Hello world!</string>
-    <string name="api_key">YOUR_API_KEY_HERE</string>
+    <string name="api_key">c330e9b493ba5e1273fac2e4fe5b18f6</string>
     <string name="action_sort_popularity">Sort by popularity</string>
     <string name="action_sort_rating">Sort by Rating</string>
     <string name="action_sort_fav">My Favourites</string>
